@@ -59,7 +59,7 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
     var celebratingMilestone by remember { mutableStateOf<MilestoneEvent?>(null) }
     var showLanguageSheet by remember { mutableStateOf(false) }
 
-    // Milestone celebrations (replaces snackbar)
+    // Milestone celebrations
     LaunchedEffect(Unit) {
         viewModel.milestoneEvents.collectLatest { event ->
             celebratingMilestone = event
@@ -118,26 +118,24 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
     Scaffold { paddingValues ->
         val pagerState = rememberPagerState(pageCount = { 3 })
 
-        // Trigger interstitial on page change if conditions are met
+        // Trigger interstitial on page change
         LaunchedEffect(pagerState.currentPage) {
-            if (pagerState.currentPage != 0) { // Don't trigger at initial page
+            if (pagerState.currentPage != 0) {
                 activity?.let { viewModel.tryShowInterstitial(it) }
             }
         }
 
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+
+            // ── Layer 0: Cyberpunk city background ──
+            CyberpunkBackground(modifier = Modifier.fillMaxSize())
+
+            // ── Layer 1: Main content ──
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // ── Cyberpunk Nav Bar ──
-                CyberpunkNavBar(
-                    pagerState = pagerState,
-                    onPageSelected = { scope.launch { pagerState.animateScrollToPage(it) } },
-                    onSettingsClick = { showLanguageSheet = true }
-                )
-
-
+                // Content pages (weight 1f = fills available space)
                 HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                     when (page) {
                         0 -> GameTab(state, viewModel, onPrestige = { showPrestigeDialog = true })
@@ -150,7 +148,6 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
                             rewardedAdState = rewardedAdState,
                             onWatchAd = { activity?.let { viewModel.showRewardedAd(it) } }
                         )
-
                         2 -> MilestonePanel(
                             milestones = state.milestones,
                             allTimePoints = state.allTimePoints,
@@ -159,9 +156,16 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
                         )
                     }
                 }
+
+                // ── Cyberpunk Nav Bar (bottom) ──
+                CyberpunkNavBar(
+                    pagerState = pagerState,
+                    onPageSelected = { scope.launch { pagerState.animateScrollToPage(it) } },
+                    onSettingsClick = { showLanguageSheet = true }
+                )
             }
 
-            // Milestone celebration overlay (on top of everything)
+            // ── Layer 2: Milestone celebration overlay ──
             celebratingMilestone?.let { event ->
                 MilestoneCelebration(
                     milestoneName = event.name,
@@ -171,14 +175,12 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
         }
     }
 
-    // Language selection bottom sheet
     if (showLanguageSheet) {
         LanguageBottomSheet(
             currentLanguageCode = state.languageCode,
             onLanguageSelected = { code ->
                 scope.launch {
                     viewModel.onSetLanguage(code)
-                    // Give DataStore time to persist before recreating
                     kotlinx.coroutines.delay(100)
                     (context as android.app.Activity).recreate()
                 }
@@ -199,13 +201,9 @@ private fun GameTab(
     val activity = context as? android.app.Activity
     val floatingTexts = remember { mutableStateListOf<FloatingTextData>() }
 
-    // Screen flash for critical hits
     val flashAlpha = remember { Animatable(0f) }
-
-    // Screen shake for prestige
     val shakeOffsetX = remember { Animatable(0f) }
 
-    // Collect tap events for floating text + critical flash
     LaunchedEffect(Unit) {
         viewModel.tapEvents.collect { event ->
             val text = if (event.isCritical) {
@@ -224,13 +222,8 @@ private fun GameTab(
                     offsetX = Random.nextFloat() * 60 - 30
                 )
             )
+            if (floatingTexts.size > 15) floatingTexts.removeFirst()
 
-            // Limit floating text count
-            if (floatingTexts.size > 15) {
-                floatingTexts.removeFirst()
-            }
-
-            // Screen flash on critical hit
             if (event.isCritical) {
                 flashAlpha.snapTo(0.35f)
                 flashAlpha.animateTo(0f, tween(400))
@@ -248,7 +241,7 @@ private fun GameTab(
                 state.comboMultiplier >= 3.0 -> GoldAccent
                 else -> NeonCyan
             }
-            val alpha = ((state.comboMultiplier - 1.0) / 4.0 * 0.25).toFloat()
+            val alpha = ((state.comboMultiplier - 1.0) / 4.0 * 0.22).toFloat()
             Canvas(modifier = Modifier.fillMaxSize()) {
                 drawRect(
                     brush = Brush.radialGradient(
@@ -263,11 +256,11 @@ private fun GameTab(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
                 .offset(x = shakeOffsetX.value.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Stats bar at top
             StatsBar(
                 viralPoints = state.viralPoints,
                 pointsPerSecond = state.pointsPerSecond,
@@ -280,15 +273,13 @@ private fun GameTab(
 
             BoostTimer(boostActiveUntil = state.boostActiveUntil)
 
-            // Combo meter above clicker
             ComboMeter(
                 comboCount = state.comboCount,
                 comboMultiplier = state.comboMultiplier
             )
 
-            // Clicker with floating text overlay and particles
+            // Clicker with floating text and particles
             Box(contentAlignment = Alignment.Center) {
-                // Particle effect during high combos
                 ParticleEffect(
                     isActive = state.comboCount >= 5,
                     particleColor = when {
@@ -307,7 +298,6 @@ private fun GameTab(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
-                // Floating point numbers
                 FloatingTextOverlay(
                     floatingTexts = floatingTexts,
                     onRemove = { id -> floatingTexts.removeAll { it.id == id } }
@@ -316,7 +306,8 @@ private fun GameTab(
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 if (state.prestigeAvailable) {
                     Button(
@@ -324,14 +315,18 @@ private fun GameTab(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.tertiary
                         ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     ) {
                         Text("🔥 ${stringResource(R.string.prestige_button)}", fontWeight = FontWeight.Bold)
                     }
                 }
                 OutlinedButton(
                     onClick = { activity?.let { viewModel.showRewardedAd(it) } },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     enabled = state.boostActiveUntil == null ||
                             System.currentTimeMillis() >= (state.boostActiveUntil ?: 0L)
                 ) {
@@ -340,7 +335,7 @@ private fun GameTab(
             }
         }
 
-        // Critical hit screen flash overlay
+        // Critical hit screen flash
         if (flashAlpha.value > 0f) {
             Box(
                 Modifier
@@ -352,7 +347,7 @@ private fun GameTab(
 }
 
 // ═══════════════════════════════════════════════
-//  CYBERPUNK NAV BAR — Flat Neon Indicator
+//  CYBERPUNK NAV BAR — Bottom, icon + label
 // ═══════════════════════════════════════════════
 
 private data class NavTab(val emoji: String, val label: String, val color: Color)
@@ -366,21 +361,18 @@ private fun CyberpunkNavBar(
     val selectedPage = pagerState.currentPage
     val layoutDirection = LocalLayoutDirection.current
 
-    // Build tabs with localized labels (must be inside @Composable)
     val navTabs = listOf(
         NavTab("\uD83C\uDFAE", stringResource(R.string.nav_game), NeonCyan),
         NavTab("\uD83D\uDED2", stringResource(R.string.nav_shop), NeonPurple),
         NavTab("\uD83C\uDFC6", stringResource(R.string.nav_vault), GoldAccent)
     )
 
-    // Smooth sliding indicator position (fractional tab index)
     val animatedTabOffset by animateFloatAsState(
         targetValue = selectedPage.toFloat(),
         animationSpec = spring(dampingRatio = 0.70f, stiffness = 380f),
         label = "indicator_pos"
     )
 
-    // Indicator color transitions between tab neon colors
     val indicatorColor by animateColorAsState(
         targetValue = navTabs[selectedPage].color,
         animationSpec = tween(280),
@@ -390,104 +382,27 @@ private fun CyberpunkNavBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkSurface)
+            .background(DarkSurface.copy(alpha = 0.95f))
     ) {
-        // ── Tab items row (wrapped in Box for gear icon overlay) ──
-        Box(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 6.dp, end = 32.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            navTabs.forEachIndexed { index, tab ->
-                val isSelected = selectedPage == index
-
-                // Emoji scale: spring bounce on selection
-                val emojiScale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.12f else 0.88f,
-                    animationSpec = spring(dampingRatio = 0.55f, stiffness = 480f),
-                    label = "scale_$index"
-                )
-                // Alpha for whole tab item
-                val itemAlpha by animateFloatAsState(
-                    targetValue = if (isSelected) 1f else 0.38f,
-                    animationSpec = tween(200),
-                    label = "alpha_$index"
-                )
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onPageSelected(index) }
-                        .padding(vertical = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    // Emoji — scaled, no background, no glow ball
-                    Text(
-                        text = tab.emoji,
-                        fontSize = 20.sp,
-                        modifier = Modifier.graphicsLayer(
-                            scaleX = emojiScale,
-                            scaleY = emojiScale,
-                            alpha = itemAlpha
-                        )
-                    )
-
-                    // Label — always visible, caps with tight tracking
-                    Text(
-                        text = tab.label,
-                        fontSize = 10.sp,
-                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
-                        letterSpacing = 2.sp,
-                        color = if (isSelected) tab.color
-                        else OnDarkSecondary.copy(alpha = 0.38f)
-                    )
-                }
-            }
-        }
-
-        // Settings gear icon — top-end (RTL-aware via Alignment.TopEnd)
-        IconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(40.dp)
-                .padding(end = 4.dp, top = 2.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_title),
-                tint = OnDarkSecondary.copy(alpha = 0.50f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
-        } // end Box
-
-        // ── Sliding neon underline indicator ──
+        // ── Neon top indicator line (active tab highlight) ──
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(2.dp)
         ) {
             val tabW = size.width / 3f
-            val barW = tabW * 0.40f
-            // Mirror indicator position for RTL (tab 0 → right, tab 2 → left)
+            val barW = tabW * 0.42f
             val rtlOffset = if (layoutDirection == LayoutDirection.Rtl) 2f - animatedTabOffset else animatedTabOffset
             val x = rtlOffset * tabW + (tabW - barW) / 2f
 
-            // Soft glow halo above bar
+            // Soft glow halo
             drawRoundRect(
-                color = indicatorColor.copy(alpha = 0.20f),
-                topLeft = Offset(x - 8f, -6f),
-                size = Size(barW + 16f, 10f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f)
+                color = indicatorColor.copy(alpha = 0.22f),
+                topLeft = Offset(x - 10f, -8f),
+                size = Size(barW + 20f, 12f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f)
             )
-            // Solid 2dp bar
+            // Solid bar
             drawRoundRect(
                 color = indicatorColor,
                 topLeft = Offset(x, 0f),
@@ -496,12 +411,83 @@ private fun CyberpunkNavBar(
             )
         }
 
-        // Baseline hairline
+        // Hairline separator below indicator
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(0.5.dp)
-                .background(OnDarkSecondary.copy(alpha = 0.06f))
+                .background(OnDarkSecondary.copy(alpha = 0.08f))
         )
+
+        // ── Tabs row ──
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 8.dp, end = 32.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                navTabs.forEachIndexed { index, tab ->
+                    val isSelected = selectedPage == index
+
+                    val emojiScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.14f else 0.88f,
+                        animationSpec = spring(dampingRatio = 0.52f, stiffness = 500f),
+                        label = "scale_$index"
+                    )
+                    val itemAlpha by animateFloatAsState(
+                        targetValue = if (isSelected) 1f else 0.35f,
+                        animationSpec = tween(200),
+                        label = "alpha_$index"
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onPageSelected(index) }
+                            .padding(vertical = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Text(
+                            text = tab.emoji,
+                            fontSize = 20.sp,
+                            modifier = Modifier.graphicsLayer(
+                                scaleX = emojiScale,
+                                scaleY = emojiScale,
+                                alpha = itemAlpha
+                            )
+                        )
+                        Text(
+                            text = tab.label,
+                            fontSize = 9.sp,
+                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                            letterSpacing = 1.5.sp,
+                            color = if (isSelected) tab.color
+                            else OnDarkSecondary.copy(alpha = 0.35f)
+                        )
+                    }
+                }
+            }
+
+            // Settings icon (end of row)
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(40.dp)
+                    .padding(end = 4.dp, top = 2.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings_title),
+                    tint = OnDarkSecondary.copy(alpha = 0.45f),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
     }
 }
