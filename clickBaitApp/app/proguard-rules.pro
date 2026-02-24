@@ -1,6 +1,6 @@
 # Add project specific ProGuard rules here.
--keep class com.example.viralclicker.** { *; }
--keepclassmembers class com.example.viralclicker.** { *; }
+-keep class com.magicteamdev0.viralclicker.** { *; }
+-keepclassmembers class com.magicteamdev0.viralclicker.** { *; }
 
 # Room
 -keep class * extends androidx.room.RoomDatabase

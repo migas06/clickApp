@@ -14,6 +14,7 @@ hiltNavigationCompose = "1.2.0"
 coroutines = "1.9.0"
 playBilling = "7.1.1"
 playServicesAds = "23.1.0"
+ump = "2.2.0"
 
 [libraries]
 # Core
@@ -55,6 +56,7 @@ play-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", 
 
 # Ads
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
 
 # Testing
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
