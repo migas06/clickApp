@@ -16,10 +16,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.viralclicker.R
 import com.example.viralclicker.ui.theme.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -90,7 +92,7 @@ fun MilestoneCelebration(
                 Text("🏆", fontSize = 48.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "MILESTONE UNLOCKED!",
+                    stringResource(R.string.milestone_unlocked_banner),
                     color = GoldAccent,
                     fontWeight = FontWeight.Black,
                     fontSize = 18.sp,

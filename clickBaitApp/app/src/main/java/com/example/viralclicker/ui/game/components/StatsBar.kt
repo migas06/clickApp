@@ -10,8 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.viralclicker.R
 import com.example.viralclicker.domain.model.NextMilestoneProgress
 import com.example.viralclicker.domain.model.ViralPoints
 import com.example.viralclicker.ui.theme.*
@@ -38,17 +40,19 @@ fun StatsBar(
             fontWeight = FontWeight.Black
         )
         Text(
-            text = "Viral Points",
+            text = stringResource(R.string.viral_points_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(4.dp))
+        val perSecLabel = stringResource(R.string.stats_per_sec)
+        val perTapLabel = stringResource(R.string.stats_per_tap)
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            StatChip(label = "${pointsPerSecond.toDisplayString()}/s", color = NeonCyan)
-            StatChip(label = "+${pointsPerClick.toDisplayString()}/tap", color = MaterialTheme.colorScheme.secondary)
+            StatChip(label = "${pointsPerSecond.toDisplayString()}$perSecLabel", color = NeonCyan)
+            StatChip(label = "+${pointsPerClick.toDisplayString()}$perTapLabel", color = MaterialTheme.colorScheme.secondary)
             if (prestigeMultiplier > 1.0) {
                 StatChip(label = "×${String.format("%.1f", prestigeMultiplier)}", color = GoldAccent)
             }
@@ -61,7 +65,7 @@ fun StatsBar(
         nextMilestone?.let { nm ->
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Next: ${nm.name}",
+                text = stringResource(R.string.stats_next, nm.name),
                 color = GoldAccent,
                 style = MaterialTheme.typography.labelSmall
             )

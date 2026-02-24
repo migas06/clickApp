@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "viral_clicker_settings")
+internal val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "viral_clicker_settings")
 
 @Singleton
 class SettingsDataStore @Inject constructor(@ApplicationContext private val context: Context) {
@@ -22,11 +22,13 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val NO_ADS_PURCHASED = booleanPreferencesKey("no_ads_purchased")
         val ACTIVE_SKIN_ID = stringPreferencesKey("active_skin_id")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
+        val LANGUAGE_CODE = stringPreferencesKey("language_code")
     }
 
     val noAdsPurchased: Flow<Boolean> = context.dataStore.data.map { it[NO_ADS_PURCHASED] ?: false }
     val activeSkinId: Flow<String> = context.dataStore.data.map { it[ACTIVE_SKIN_ID] ?: "default" }
     val soundEnabled: Flow<Boolean> = context.dataStore.data.map { it[SOUND_ENABLED] ?: true }
+    val languageCode: Flow<String> = context.dataStore.data.map { it[LANGUAGE_CODE] ?: "en" }
 
     suspend fun setNoAdsPurchased(value: Boolean) {
         context.dataStore.edit { it[NO_ADS_PURCHASED] = value }
@@ -38,5 +40,9 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
 
     suspend fun setSoundEnabled(value: Boolean) {
         context.dataStore.edit { it[SOUND_ENABLED] = value }
+    }
+
+    suspend fun setLanguageCode(code: String) {
+        context.dataStore.edit { it[LANGUAGE_CODE] = code }
     }
 }

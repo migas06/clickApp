@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.viralclicker.R
 import com.example.viralclicker.ui.theme.GoldAccent
 import com.example.viralclicker.ui.theme.NeonCyan
 import com.example.viralclicker.ui.theme.NeonPink
@@ -51,7 +53,7 @@ fun ComboMeter(
         modifier = modifier.graphicsLayer(scaleX = pulseScale, scaleY = pulseScale)
     ) {
         Text(
-            text = "${comboMultiplier.toInt()}x COMBO",
+            text = stringResource(R.string.combo_meter, comboMultiplier.toInt()),
             color = tierColor,
             fontWeight = FontWeight.Black,
             fontSize = 22.sp

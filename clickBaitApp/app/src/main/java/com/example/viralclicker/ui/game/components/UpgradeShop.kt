@@ -24,10 +24,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.viralclicker.R
 import com.example.viralclicker.domain.catalog.UpgradeCatalog
 import com.example.viralclicker.domain.model.UpgradeCategory
 import com.example.viralclicker.domain.model.ViralPoints
@@ -121,7 +125,7 @@ fun UpgradeShop(
                             Text("🔒", fontSize = 40.sp)
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                "Keep earning to unlock upgrades!",
+                                stringResource(R.string.upgrade_keep_earning),
                                 color = OnDarkSecondary,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -161,7 +165,7 @@ private fun ShopHeader(viralPoints: ViralPoints) {
         ) {
             Column {
                 Text(
-                    "SHOP",
+                    stringResource(R.string.shop_header),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 4.sp,
@@ -169,7 +173,7 @@ private fun ShopHeader(viralPoints: ViralPoints) {
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "Power up your empire",
+                    stringResource(R.string.shop_subtitle),
                     fontSize = 12.sp,
                     color = OnDarkSecondary.copy(alpha = 0.5f)
                 )
@@ -216,8 +220,8 @@ private fun CategoryToggle(
     generatorCount: Int
 ) {
     val categories = listOf(
-        Triple(UpgradeCategory.CLICKER, "👆 CLICKERS", clickerCount),
-        Triple(UpgradeCategory.GENERATOR, "🤖 GENERATORS", generatorCount)
+        Triple(UpgradeCategory.CLICKER, "👆 ${stringResource(R.string.category_clickers)}", clickerCount),
+        Triple(UpgradeCategory.GENERATOR, "🤖 ${stringResource(R.string.category_generators)}", generatorCount)
     )
 
     Row(
@@ -316,6 +320,7 @@ private fun NeonUpgradeCard(
         targetValue = if (justPurchased) 0.4f else 0f,
         animationSpec = tween(300), label = "purchase_glow"
     )
+    val layoutDirection = LocalLayoutDirection.current
 
     Box(
         modifier = Modifier
@@ -346,11 +351,12 @@ private fun NeonUpgradeCard(
                     )
                 )
                 .drawBehind {
-                    // Subtle left accent bar
+                    // Accent bar — switches side for RTL
+                    val accentX = if (layoutDirection == LayoutDirection.Rtl) size.width - 4f else 0f
                     drawRoundRect(
                         color = if (canAfford) accentColor.copy(alpha = 0.6f)
                         else OnDarkSecondary.copy(alpha = 0.15f),
-                        topLeft = Offset(0f, 12f),
+                        topLeft = Offset(accentX, 12f),
                         size = Size(4f, size.height - 24f),
                         cornerRadius = CornerRadius(2f)
                     )
@@ -476,7 +482,7 @@ private fun NeonUpgradeCard(
                             color = if (canAfford) DarkBackground else OnDarkSecondary.copy(alpha = 0.35f)
                         )
                         Text(
-                            "BUY",
+                            stringResource(R.string.upgrade_buy),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 2.sp,

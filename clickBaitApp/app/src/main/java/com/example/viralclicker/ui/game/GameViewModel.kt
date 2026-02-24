@@ -271,6 +271,12 @@ class GameViewModel @Inject constructor(
         _gameState.update { it.copy(dailyBonus = null) }
     }
 
+    fun onSetLanguage(code: String) {
+        viewModelScope.launch {
+            settings.setLanguageCode(code)
+        }
+    }
+
     private fun computeNextMilestone(): NextMilestoneProgress? {
         val allTime = ViralPoints.fromString(_player.allTimePoints)
         val totalOwned = _ownedMap.values.sum()
@@ -300,6 +306,7 @@ class GameViewModel @Inject constructor(
 
     private suspend fun emitState(offlineEarnings: ViralPoints? = null, noAds: Boolean? = null, dailyBonus: ViralPoints? = null) {
         val resolvedNoAds = noAds ?: _gameState.value.noAdsPurchased
+        val langCode = settings.languageCode.first()
         val now = System.currentTimeMillis()
         val milestones = MilestoneCatalog.all.map { def ->
             val unlocked = def.id in _unlockedMilestoneIds
@@ -339,7 +346,8 @@ class GameViewModel @Inject constructor(
                 comboMultiplier = comboMult,
                 nextMilestone = computeNextMilestone(),
                 dailyStreak = _player.currentStreak,
-                dailyBonus = dailyBonus ?: _gameState.value.dailyBonus
+                dailyBonus = dailyBonus ?: _gameState.value.dailyBonus,
+                languageCode = langCode
             )
         )
     }

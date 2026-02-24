@@ -22,7 +22,8 @@ data class GameState(
     val comboMultiplier: Double = 1.0,
     val nextMilestone: NextMilestoneProgress? = null,
     val dailyStreak: Int = 0,
-    val dailyBonus: ViralPoints? = null
+    val dailyBonus: ViralPoints? = null,
+    val languageCode: String = "en"
 ) {
     /** Returns 2.0 if boost active & not expired, 1.0 otherwise */
     fun boostMultiplier(nowMs: Long): Double =

@@ -23,14 +23,24 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.viralclicker.R
 import com.example.viralclicker.ui.game.components.*
 import com.example.viralclicker.ui.prestige.PrestigeDialog
+import com.example.viralclicker.ui.settings.LanguageBottomSheet
 import com.example.viralclicker.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -41,8 +51,10 @@ import kotlin.random.Random
 fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
     val state by viewModel.gameState.collectAsState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var showPrestigeDialog by remember { mutableStateOf(false) }
     var celebratingMilestone by remember { mutableStateOf<MilestoneEvent?>(null) }
+    var showLanguageSheet by remember { mutableStateOf(false) }
 
     // Milestone celebrations (replaces snackbar)
     LaunchedEffect(Unit) {
@@ -55,10 +67,10 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
     if (state.offlineEarnings != null) {
         AlertDialog(
             onDismissRequest = viewModel::onDismissOfflineEarnings,
-            title = { Text("👋 Welcome back!") },
-            text = { Text("You earned ${state.offlineEarnings!!.toDisplayString()} Viral Points while away!") },
+            title = { Text("👋 ${stringResource(R.string.offline_earnings_title)}") },
+            text = { Text(stringResource(R.string.offline_earnings_message, state.offlineEarnings!!.toDisplayString())) },
             confirmButton = {
-                TextButton(onClick = viewModel::onDismissOfflineEarnings) { Text("Nice!") }
+                TextButton(onClick = viewModel::onDismissOfflineEarnings) { Text(stringResource(R.string.offline_confirm)) }
             }
         )
     }
@@ -70,20 +82,20 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
             title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "\uD83D\uDD25 Day ${state.dailyStreak} Streak!",
+                        "🔥 ${stringResource(R.string.streak_title, state.dailyStreak)}",
                         fontWeight = FontWeight.Black
                     )
                 }
             },
             text = {
-                Text("You earned +${state.dailyBonus!!.toDisplayString()} Viral Points!\n\nKeep logging in daily to increase your bonus!")
+                Text(stringResource(R.string.streak_message, state.dailyBonus!!.toDisplayString()))
             },
             confirmButton = {
                 Button(
                     onClick = viewModel::onDismissDailyBonus,
                     colors = ButtonDefaults.buttonColors(containerColor = GoldAccent)
                 ) {
-                    Text("Collect!", fontWeight = FontWeight.Bold, color = DarkBackground)
+                    Text(stringResource(R.string.streak_collect), fontWeight = FontWeight.Bold, color = DarkBackground)
                 }
             }
         )
@@ -111,7 +123,8 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
                 // ── Cyberpunk Nav Bar ──
                 CyberpunkNavBar(
                     pagerState = pagerState,
-                    onPageSelected = { scope.launch { pagerState.animateScrollToPage(it) } }
+                    onPageSelected = { scope.launch { pagerState.animateScrollToPage(it) } },
+                    onSettingsClick = { showLanguageSheet = true }
                 )
 
 
@@ -144,6 +157,22 @@ fun GameScreen(viewModel: GameViewModel = hiltViewModel()) {
                 )
             }
         }
+    }
+
+    // Language selection bottom sheet
+    if (showLanguageSheet) {
+        LanguageBottomSheet(
+            currentLanguageCode = state.languageCode,
+            onLanguageSelected = { code ->
+                scope.launch {
+                    viewModel.onSetLanguage(code)
+                    // Give DataStore time to persist before recreating
+                    kotlinx.coroutines.delay(100)
+                    (context as android.app.Activity).recreate()
+                }
+            },
+            onDismiss = { showLanguageSheet = false }
+        )
     }
 }
 
@@ -283,7 +312,7 @@ private fun GameTab(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("\uD83D\uDD25 Go Viral! (Prestige)", fontWeight = FontWeight.Bold)
+                        Text("🔥 ${stringResource(R.string.prestige_button)}", fontWeight = FontWeight.Bold)
                     }
                 }
                 OutlinedButton(
@@ -292,7 +321,7 @@ private fun GameTab(
                     enabled = state.boostActiveUntil == null ||
                             System.currentTimeMillis() >= (state.boostActiveUntil ?: 0L)
                 ) {
-                    Text("\uD83D\uDCFA Watch Ad for 2× Boost")
+                    Text("📺 ${stringResource(R.string.watch_ad_button)}")
                 }
             }
         }
@@ -314,18 +343,21 @@ private fun GameTab(
 
 private data class NavTab(val emoji: String, val label: String, val color: Color)
 
-private val navTabs = listOf(
-    NavTab("\uD83C\uDFAE", "GAME", NeonCyan),
-    NavTab("\uD83D\uDED2", "SHOP", NeonPurple),
-    NavTab("\uD83C\uDFC6", "VAULT", GoldAccent)
-)
-
 @Composable
 private fun CyberpunkNavBar(
     pagerState: PagerState,
-    onPageSelected: (Int) -> Unit
+    onPageSelected: (Int) -> Unit,
+    onSettingsClick: () -> Unit = {}
 ) {
     val selectedPage = pagerState.currentPage
+    val layoutDirection = LocalLayoutDirection.current
+
+    // Build tabs with localized labels (must be inside @Composable)
+    val navTabs = listOf(
+        NavTab("\uD83C\uDFAE", stringResource(R.string.nav_game), NeonCyan),
+        NavTab("\uD83D\uDED2", stringResource(R.string.nav_shop), NeonPurple),
+        NavTab("\uD83C\uDFC6", stringResource(R.string.nav_vault), GoldAccent)
+    )
 
     // Smooth sliding indicator position (fractional tab index)
     val animatedTabOffset by animateFloatAsState(
@@ -346,11 +378,12 @@ private fun CyberpunkNavBar(
             .fillMaxWidth()
             .background(DarkSurface)
     ) {
-        // ── Tab items row ──
+        // ── Tab items row (wrapped in Box for gear icon overlay) ──
+        Box(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 6.dp),
+                .padding(top = 10.dp, bottom = 6.dp, end = 32.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             navTabs.forEachIndexed { index, tab ->
@@ -404,6 +437,23 @@ private fun CyberpunkNavBar(
             }
         }
 
+        // Settings gear icon — top-end (RTL-aware via Alignment.TopEnd)
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(40.dp)
+                .padding(end = 4.dp, top = 2.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = stringResource(R.string.settings_title),
+                tint = OnDarkSecondary.copy(alpha = 0.50f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        } // end Box
+
         // ── Sliding neon underline indicator ──
         Canvas(
             modifier = Modifier
@@ -412,7 +462,9 @@ private fun CyberpunkNavBar(
         ) {
             val tabW = size.width / 3f
             val barW = tabW * 0.40f
-            val x = animatedTabOffset * tabW + (tabW - barW) / 2f
+            // Mirror indicator position for RTL (tab 0 → right, tab 2 → left)
+            val rtlOffset = if (layoutDirection == LayoutDirection.Rtl) 2f - animatedTabOffset else animatedTabOffset
+            val x = rtlOffset * tabW + (tabW - barW) / 2f
 
             // Soft glow halo above bar
             drawRoundRect(

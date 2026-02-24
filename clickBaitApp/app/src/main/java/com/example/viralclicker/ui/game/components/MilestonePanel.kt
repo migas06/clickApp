@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.viralclicker.R
 import com.example.viralclicker.domain.catalog.MilestoneCatalog
 import com.example.viralclicker.domain.model.MilestoneState
 import com.example.viralclicker.domain.model.MilestoneTrigger
@@ -47,11 +49,6 @@ private fun triggerColor(trigger: MilestoneTrigger): Color = when (trigger) {
     MilestoneTrigger.TOTAL_UPGRADES_OWNED -> NeonPink
 }
 
-private fun triggerLabel(trigger: MilestoneTrigger): Pair<String, String> = when (trigger) {
-    MilestoneTrigger.ALL_TIME_POINTS -> "🏆" to "Viral Points"
-    MilestoneTrigger.PRESTIGE_COUNT -> "🔥" to "Prestige"
-    MilestoneTrigger.TOTAL_UPGRADES_OWNED -> "🛍\uFE0F" to "Upgrades"
-}
 
 /** Extract emoji from milestone name like "Going Viral 🎉" → ("Going Viral", "🎉") */
 private fun extractEmoji(name: String): Pair<String, String> {
@@ -129,16 +126,25 @@ fun MilestonePanel(
 
         grouped.forEach { (trigger, items) ->
             val sectionIndex = globalIndex
-            val (emoji, label) = triggerLabel(trigger)
             val color = triggerColor(trigger)
 
-            // Section header
+            // Section header — label resolved inside composable scope
             item {
                 AnimatedVisibility(
                     visible = visibleItems[sectionIndex] == true,
                     enter = fadeIn(tween(300, delayMillis = sectionIndex * 50)) +
                             slideInVertically(tween(300, delayMillis = sectionIndex * 50)) { -40 }
                 ) {
+                    val emoji = when (trigger) {
+                        MilestoneTrigger.ALL_TIME_POINTS -> "🏆"
+                        MilestoneTrigger.PRESTIGE_COUNT -> "🔥"
+                        MilestoneTrigger.TOTAL_UPGRADES_OWNED -> "🛍️"
+                    }
+                    val label = when (trigger) {
+                        MilestoneTrigger.ALL_TIME_POINTS -> stringResource(R.string.trigger_viral_points)
+                        MilestoneTrigger.PRESTIGE_COUNT -> stringResource(R.string.trigger_prestige)
+                        MilestoneTrigger.TOTAL_UPGRADES_OWNED -> stringResource(R.string.trigger_upgrades)
+                    }
                     Column {
                         Spacer(Modifier.height(4.dp))
                         NeonSectionHeader(title = label, emoji = emoji, accentColor = color)
@@ -296,7 +302,7 @@ private fun TrophyVaultHeader(unlocked: Int, total: Int, fraction: Float) {
 
         // Title
         Text(
-            "ACHIEVEMENT VAULT",
+            stringResource(R.string.vault_title),
             letterSpacing = 4.sp,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
@@ -305,7 +311,7 @@ private fun TrophyVaultHeader(unlocked: Int, total: Int, fraction: Float) {
 
         // Percentage
         Text(
-            "${(fraction * 100).toInt()}% Complete",
+            stringResource(R.string.vault_complete, (fraction * 100).toInt()),
             fontSize = 12.sp,
             color = GoldAccent.copy(alpha = 0.6f)
         )
@@ -495,7 +501,7 @@ private fun UnlockedBadge(color: Color) {
         border = BorderStroke(0.5.dp, color.copy(alpha = 0.3f))
     ) {
         Text(
-            "UNLOCKED",
+            stringResource(R.string.unlocked_badge),
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             fontSize = 9.sp,
             fontWeight = FontWeight.Black,
