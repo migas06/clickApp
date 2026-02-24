@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Viral Clicker</string>
+    <string name="tap_button_description">Tap to go viral</string>
+    <string name="shop_title">Upgrade Shop</string>
+    <string name="milestones_title">Milestones</string>
+    <string name="prestige_title">Go Viral!</string>
+    <string name="prestige_confirm_message">Reset your progress for a permanent %.0f%% bonus multiplier?</string>
+    <string name="prestige_confirm_yes">Go Viral!</string>
+    <string name="prestige_confirm_no">Not yet</string>
+    <string name="watch_ad_boost">Watch Ad for 2× Boost</string>
+    <string name="boost_active">Boost: %s</string>
+    <string name="no_ads_title">Remove Ads</string>
+    <string name="viral_points_label">Viral Points</string>
+    <string name="per_second_label">/sec</string>
+    <string name="owned_label">Owned: %d</string>
+    <string name="cost_label">Cost: %s</string>
+    <string name="ad_unavailable">Ad not available</string>
+    <string name="settings_title">Settings</string>
+    <string name="sound_enabled">Sound Effects</string>
+    <string name="offline_earnings_title">Welcome back!</string>
+    <string name="offline_earnings_message">You earned %s while away</string>
+</resources>

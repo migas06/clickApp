@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- ═══ CYBERPUNK NEON LAUGHING EMOJI ═══ -->
+
+    <!-- Outer glow halo - soft cyan diffuse -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.06"
+        android:pathData="M54,8 A46,46 0 1,1 53.99,8 Z"/>
+
+    <!-- Secondary glow ring - purple diffuse -->
+    <path
+        android:fillColor="#9B59FF"
+        android:fillAlpha="0.10"
+        android:pathData="M54,16 A38,38 0 1,1 53.99,16 Z"/>
+
+    <!-- Inner glow - cyan closer to face -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.08"
+        android:pathData="M54,22 A32,32 0 1,1 53.99,22 Z"/>
+
+    <!-- Face dark fill (dark surface, slightly lighter than bg) -->
+    <path
+        android:fillColor="#181828"
+        android:pathData="M54,26 A28,28 0 1,1 53.99,26 Z"/>
+
+    <!-- Face neon outline ring - CYAN (outer circle minus inner = 2dp ring) -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M54,25 A29,29 0 1,1 53.99,25 Z M54,27 A27,27 0 1,0 53.99,27 Z"
+        android:fillType="evenOdd"/>
+
+    <!-- Inner ring subtle glow -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.15"
+        android:pathData="M54,27 A27,27 0 1,1 53.99,27 Z M54,29 A25,25 0 1,0 53.99,29 Z"
+        android:fillType="evenOdd"/>
+
+    <!-- ── EYES (neon pink) ── -->
+    <!-- Left eye -->
+    <path
+        android:fillColor="#FF2D78"
+        android:pathData="M41,45 A4.5,4.5 0 1,1 40.99,45 Z"/>
+    <!-- Left eye glow -->
+    <path
+        android:fillColor="#FF2D78"
+        android:fillAlpha="0.25"
+        android:pathData="M41,45 A7,7 0 1,1 40.99,45 Z"/>
+    <!-- Left eye core (bright) -->
+    <path
+        android:fillColor="#FF6BA0"
+        android:pathData="M41,45 A2.5,2.5 0 1,1 40.99,45 Z"/>
+
+    <!-- Right eye -->
+    <path
+        android:fillColor="#FF2D78"
+        android:pathData="M67,45 A4.5,4.5 0 1,1 66.99,45 Z"/>
+    <!-- Right eye glow -->
+    <path
+        android:fillColor="#FF2D78"
+        android:fillAlpha="0.25"
+        android:pathData="M67,45 A7,7 0 1,1 66.99,45 Z"/>
+    <!-- Right eye core (bright) -->
+    <path
+        android:fillColor="#FF6BA0"
+        android:pathData="M67,45 A2.5,2.5 0 1,1 66.99,45 Z"/>
+
+    <!-- ── TEARS OF JOY (neon cyan) ── -->
+    <!-- Left tear -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M34,43 Q28,54 33,58 Q38,54 34,43 Z"/>
+    <!-- Left tear glow -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.20"
+        android:pathData="M33,41 Q25,55 32,60 Q40,55 33,41 Z"/>
+
+    <!-- Right tear -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M74,43 Q80,54 75,58 Q70,54 74,43 Z"/>
+    <!-- Right tear glow -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.20"
+        android:pathData="M75,41 Q83,55 76,60 Q68,55 75,41 Z"/>
+
+    <!-- ── SMILE (neon green) ── -->
+    <!-- Main smile shape -->
+    <path
+        android:fillColor="#39FF14"
+        android:pathData="M34,60 Q54,82 74,60 Q66,72 54,74 Q42,72 34,60 Z"/>
+    <!-- Smile glow -->
+    <path
+        android:fillColor="#39FF14"
+        android:fillAlpha="0.15"
+        android:pathData="M32,58 Q54,86 76,58 Q66,74 54,76 Q42,74 32,58 Z"/>
+
+    <!-- Teeth (white glow) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.9"
+        android:pathData="M40,63 Q54,72 68,63 Q60,68 54,69 Q48,68 40,63 Z"/>
+
+    <!-- ── BURST SPARKS (neon accents around the face) ── -->
+    <!-- Top spark -->
+    <path
+        android:fillColor="#FF2D78"
+        android:fillAlpha="0.8"
+        android:pathData="M52.5,14 L54,10 L55.5,14 L54,13 Z"/>
+    <!-- Bottom spark -->
+    <path
+        android:fillColor="#39FF14"
+        android:fillAlpha="0.6"
+        android:pathData="M52.5,94 L54,98 L55.5,94 L54,95 Z"/>
+    <!-- Left spark -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.7"
+        android:pathData="M14,52.5 L10,54 L14,55.5 L13,54 Z"/>
+    <!-- Right spark -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.7"
+        android:pathData="M94,52.5 L98,54 L94,55.5 L95,54 Z"/>
+
+    <!-- Diagonal sparks (smaller, purple) -->
+    <!-- Top-left -->
+    <path
+        android:fillColor="#9B59FF"
+        android:fillAlpha="0.5"
+        android:pathData="M24,22 L25.5,19 L27,22 L25.5,21.5 Z"/>
+    <!-- Top-right -->
+    <path
+        android:fillColor="#9B59FF"
+        android:fillAlpha="0.5"
+        android:pathData="M81,22 L82.5,19 L84,22 L82.5,21.5 Z"/>
+    <!-- Bottom-left -->
+    <path
+        android:fillColor="#9B59FF"
+        android:fillAlpha="0.5"
+        android:pathData="M24,86 L25.5,89 L27,86 L25.5,86.5 Z"/>
+    <!-- Bottom-right -->
+    <path
+        android:fillColor="#9B59FF"
+        android:fillAlpha="0.5"
+        android:pathData="M81,86 L82.5,89 L84,86 L82.5,86.5 Z"/>
+
+    <!-- Small dot accents (like floating particles) -->
+    <path
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.4"
+        android:pathData="M20,40 A1.5,1.5 0 1,1 19.99,40 Z"/>
+    <path
+        android:fillColor="#FF2D78"
+        android:fillAlpha="0.4"
+        android:pathData="M88,40 A1.5,1.5 0 1,1 87.99,40 Z"/>
+    <path
+        android:fillColor="#39FF14"
+        android:fillAlpha="0.3"
+        android:pathData="M20,68 A1.5,1.5 0 1,1 19.99,68 Z"/>
+    <path
+        android:fillColor="#FFD700"
+        android:fillAlpha="0.4"
+        android:pathData="M88,68 A1.5,1.5 0 1,1 87.99,68 Z"/>
+
+</vector>
