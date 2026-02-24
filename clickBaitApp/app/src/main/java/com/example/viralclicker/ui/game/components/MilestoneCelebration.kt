@@ -111,56 +111,72 @@ fun MilestoneCelebration(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  ConfettiOverlay — Performance-optimised
+//
+//  Positions are computed deterministically from elapsed time (no mutable
+//  particle state and no draw-phase side-effects).  The animation clock is
+//  read inside the Canvas lambda (drawBehind scope), so Compose only
+//  invalidates the draw node — NOT the composition tree — producing 0
+//  recompositions while confetti is visible.
+// ─────────────────────────────────────────────────────────────────────────────
+
+private data class ConfettoInit(
+    val x0: Float, val y0: Float,
+    val vx: Float, val vy0: Float,
+    val rotationOffset: Float,
+    val color: Color, val size: Float
+)
+
 @Composable
 private fun ConfettiOverlay() {
-    val colors = listOf(NeonPurple, NeonCyan, NeonPink, GoldAccent, NeonGreen)
+    val colors = remember { listOf(NeonPurple, NeonCyan, NeonPink, GoldAccent, NeonGreen) }
+
+    // Immutable initial state — never mutated
     val confetti = remember {
         List(60) {
-            ConfettoState(
-                x = Random.nextFloat() * 1200f,
-                y = -Random.nextFloat() * 600f,
+            ConfettoInit(
+                x0 = Random.nextFloat() * 1200f,
+                y0 = -Random.nextFloat() * 600f,
                 vx = (Random.nextFloat() - 0.5f) * 5f,
-                vy = Random.nextFloat() * 6f + 3f,
-                rotation = Random.nextFloat() * 360f,
+                vy0 = Random.nextFloat() * 6f + 3f,
+                rotationOffset = Random.nextFloat() * 360f,
                 color = colors.random(),
                 size = Random.nextFloat() * 7f + 3f
             )
         }
     }
 
-    var tick by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(16L) // ~60 FPS
-            tick++
-        }
-    }
+    val startTimeMs = remember { System.currentTimeMillis() }
+
+    // Clock value read only inside Canvas (draw scope) → only draw is invalidated
+    val infiniteTransition = rememberInfiniteTransition(label = "confetti_clock")
+    val clockState = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing)),
+        label = "confetti_t"
+    ) // NOT destructured with 'by' — we need the State<Float> object
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Reference tick to trigger recomposition
-        tick.let { }
+        // Draw-scope read: only invalidates draw, does NOT recompose parent
+        @Suppress("UNUSED_VARIABLE")
+        val clock = clockState.value
+
+        val t = (System.currentTimeMillis() - startTimeMs) / 16.67f // frames at ~60 fps
+
         confetti.forEach { c ->
-            c.x += c.vx
-            c.y += c.vy
-            c.vy += 0.2f // gravity
-            c.rotation += 3f
-            rotate(c.rotation, pivot = Offset(c.x, c.y)) {
+            val x = c.x0 + c.vx * t
+            val y = c.y0 + c.vy0 * t + 0.1f * t * t  // y₀ + v·t + ½g·t²
+            val rotation = (c.rotationOffset + 3f * t) % 360f
+
+            rotate(rotation, pivot = Offset(x, y)) {
                 drawRect(
-                    c.color,
-                    topLeft = Offset(c.x, c.y),
+                    color = c.color,
+                    topLeft = Offset(x, y),
                     size = Size(c.size, c.size * 2.5f)
                 )
             }
         }
     }
 }
-
-private data class ConfettoState(
-    var x: Float,
-    var y: Float,
-    var vx: Float,
-    var vy: Float,
-    var rotation: Float,
-    var color: Color,
-    var size: Float
-)

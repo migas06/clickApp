@@ -63,6 +63,9 @@ class GameViewModel @Inject constructor(
     private var comboDecayJob: Job? = null
     private val initialized = AtomicBoolean(false)
 
+    // Language code cached in-memory; updated via Flow collector (avoids DataStore read on every tap)
+    @Volatile private var _cachedLanguageCode = "en"
+
     // Combo state (session-only, not persisted)
     private var _comboCount = 0
     private var _lastTapTime = 0L
@@ -76,6 +79,10 @@ class GameViewModel @Inject constructor(
     }
 
     init {
+        // Collect language code from DataStore once; cache it so emitState() never calls .first()
+        viewModelScope.launch {
+            settings.languageCode.collect { code -> _cachedLanguageCode = code }
+        }
         viewModelScope.launch {
             loadGame()
             startTicker()
@@ -306,7 +313,7 @@ class GameViewModel @Inject constructor(
 
     private suspend fun emitState(offlineEarnings: ViralPoints? = null, noAds: Boolean? = null, dailyBonus: ViralPoints? = null) {
         val resolvedNoAds = noAds ?: _gameState.value.noAdsPurchased
-        val langCode = settings.languageCode.first()
+        val langCode = _cachedLanguageCode // Use in-memory cache — no DataStore I/O per tap
         val now = System.currentTimeMillis()
         val milestones = MilestoneCatalog.all.map { def ->
             val unlocked = def.id in _unlockedMilestoneIds

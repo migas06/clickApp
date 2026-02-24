@@ -1,9 +1,15 @@
 package com.example.viralclicker.domain.model
 
+import androidx.compose.runtime.Immutable
+
 /**
  * Immutable snapshot of all UI-relevant game state.
  * Emitted by GameViewModel as a StateFlow.
+ *
+ * @Immutable lets Compose's compiler plugin skip recomposition for composables
+ * whose GameState argument hasn't structurally changed.
  */
+@Immutable
 data class GameState(
     val viralPoints: ViralPoints = ViralPoints.ZERO,
     val allTimePoints: ViralPoints = ViralPoints.ZERO,
@@ -36,6 +42,7 @@ data class GameState(
         pointsPerSecond * (prestigeMultiplier * boostMultiplier(nowMs))
 }
 
+@Immutable
 data class MilestoneState(
     val id: String,
     val name: String,
@@ -44,6 +51,7 @@ data class MilestoneState(
     val unlockedAt: Long?
 )
 
+@Immutable
 data class NextMilestoneProgress(
     val name: String,
     val progress: Float,       // 0.0 to 1.0, with endowed progress applied

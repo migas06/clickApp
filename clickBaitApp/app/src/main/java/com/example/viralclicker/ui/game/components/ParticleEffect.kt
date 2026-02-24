@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.withFrameMillis
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
@@ -21,6 +22,20 @@ private data class Particle(
     var life: Float
 )
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  ParticleEffect — Performance-optimised
+//
+//  Previous version used mutableStateListOf, so every particles.add() and
+//  removeAll() inside the draw scope triggered a full recomposition (~20/sec
+//  during combos, plus extra from draw-phase mutations).
+//
+//  New approach:
+//  • particles: regular mutableListOf — never observed by composition
+//  • Spawning & physics updates run via withFrameMillis (main thread, outside draw)
+//  • drawTick: plain Int state read only inside the Canvas lambda (draw scope)
+//    → only invalidates the draw node, zero recompositions
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 fun ParticleEffect(
     isActive: Boolean,
@@ -30,11 +45,13 @@ fun ParticleEffect(
 ) {
     if (!isActive) return
 
-    val particles = remember { mutableStateListOf<Particle>() }
+    // Plain list — NOT Compose state, so add/remove never triggers recomposition
+    val particles = remember { mutableListOf<Particle>() }
 
+    // Spawn particles on a slower timer (20 fps equivalent)
     LaunchedEffect(isActive) {
         while (isActive) {
-            // Spawn 2-3 particles per frame around a circle
+            delay(50L)
             repeat(Random.nextInt(2, 4)) {
                 val angle = Random.nextFloat() * 2 * Math.PI.toFloat()
                 val spawnRadius = 250f
@@ -52,32 +69,36 @@ fun ParticleEffect(
                     )
                 )
             }
-            delay(50L)
         }
     }
 
-    // Clear particles when deactivated
+    // Update physics per vsync frame and signal canvas to redraw (draw-scope only)
+    var drawTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(isActive) {
-        if (!isActive) particles.clear()
+        while (isActive) {
+            withFrameMillis {
+                val iter = particles.iterator()
+                while (iter.hasNext()) {
+                    val p = iter.next()
+                    p.x += p.vx
+                    p.y += p.vy
+                    p.life -= 0.025f
+                    p.alpha = p.life.coerceIn(0f, 1f)
+                    if (p.life <= 0f) iter.remove()
+                }
+                drawTick++ // draw-scope state: only invalidates Canvas draw node
+            }
+        }
     }
 
     Canvas(modifier = modifier) {
-        val toRemove = mutableListOf<Particle>()
+        drawTick.let {} // Draw-scope read — triggers redraw only, NOT recomposition
         particles.forEach { p ->
-            p.x += p.vx
-            p.y += p.vy
-            p.life -= 0.025f
-            p.alpha = p.life.coerceIn(0f, 1f)
-            if (p.life <= 0f) {
-                toRemove.add(p)
-            } else {
-                drawCircle(
-                    color = p.color.copy(alpha = p.alpha),
-                    radius = p.radius * p.life,
-                    center = Offset(p.x, p.y)
-                )
-            }
+            drawCircle(
+                color = p.color.copy(alpha = p.alpha),
+                radius = p.radius * p.life,
+                center = Offset(p.x, p.y)
+            )
         }
-        particles.removeAll(toRemove.toSet())
     }
 }

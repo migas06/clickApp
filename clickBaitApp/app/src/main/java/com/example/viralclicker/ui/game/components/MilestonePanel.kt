@@ -92,6 +92,18 @@ fun MilestonePanel(
         }
     }
 
+    // Single shared glow pulse for ALL unlocked cards (was: one rememberInfiniteTransition per card)
+    val sharedGlowTransition = rememberInfiniteTransition(label = "cards_glow")
+    val sharedGlowAlpha by sharedGlowTransition.animateFloat(
+        initialValue = 0.06f,
+        targetValue = 0.20f,
+        animationSpec = infiniteRepeatable(
+            tween(1800, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "shared_cards_glow"
+    )
+
     // Staggered entry visibility
     val visibleItems = remember { mutableStateMapOf<Int, Boolean>() }
     val totalItems = 1 + grouped.sumOf { 1 + it.second.size }
@@ -172,7 +184,8 @@ fun MilestonePanel(
                     NeonMilestoneCard(
                         ms = ms,
                         triggerType = def?.triggerType ?: MilestoneTrigger.ALL_TIME_POINTS,
-                        progress = progress
+                        progress = progress,
+                        sharedGlowAlpha = sharedGlowAlpha
                     )
                 }
             }
@@ -360,27 +373,15 @@ private fun NeonSectionHeader(title: String, emoji: String, accentColor: Color) 
 private fun NeonMilestoneCard(
     ms: MilestoneState,
     triggerType: MilestoneTrigger,
-    progress: Float
+    progress: Float,
+    sharedGlowAlpha: Float  // Shared across all cards — one animation instead of N
 ) {
     val color = triggerColor(triggerType)
     val isUnlocked = ms.unlocked
     val (cleanName, emoji) = extractEmoji(ms.name)
 
-    // Pulsing glow for unlocked milestones
-    val glowAlpha = if (isUnlocked) {
-        val inf = rememberInfiniteTransition(label = "ms_glow_${ms.id}")
-        val alpha by inf.animateFloat(
-            initialValue = 0.06f,
-            targetValue = 0.20f,
-            animationSpec = infiniteRepeatable(
-                tween(1800, easing = FastOutSlowInEasing),
-                RepeatMode.Reverse
-            ),
-            label = "ms_glow_alpha_${ms.id}"
-        )
-        alpha
-    } else 0f
-
+    // Use the shared glow alpha (no per-card infinite transition)
+    val glowAlpha = if (isUnlocked) sharedGlowAlpha else 0f
     val contentAlpha = if (isUnlocked) 1f else 0.45f
 
     Card(
