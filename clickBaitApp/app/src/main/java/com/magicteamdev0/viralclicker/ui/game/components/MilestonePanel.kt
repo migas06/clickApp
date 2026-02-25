@@ -147,10 +147,10 @@ fun MilestonePanel(
                     enter = fadeIn(tween(300, delayMillis = sectionIndex * 50)) +
                             slideInVertically(tween(300, delayMillis = sectionIndex * 50)) { -40 }
                 ) {
-                    val emoji = when (trigger) {
-                        MilestoneTrigger.ALL_TIME_POINTS -> "🏆"
-                        MilestoneTrigger.PRESTIGE_COUNT -> "🔥"
-                        MilestoneTrigger.TOTAL_UPGRADES_OWNED -> "🛍️"
+                    val iconType = when (trigger) {
+                        MilestoneTrigger.ALL_TIME_POINTS -> NavIconType.VAULT
+                        MilestoneTrigger.PRESTIGE_COUNT -> NavIconType.FIRE
+                        MilestoneTrigger.TOTAL_UPGRADES_OWNED -> NavIconType.SHOP
                     }
                     val label = when (trigger) {
                         MilestoneTrigger.ALL_TIME_POINTS -> stringResource(R.string.trigger_viral_points)
@@ -159,7 +159,7 @@ fun MilestonePanel(
                     }
                     Column {
                         Spacer(Modifier.height(4.dp))
-                        NeonSectionHeader(title = label, emoji = emoji, accentColor = color)
+                        NeonSectionHeader(title = label, iconType = iconType, accentColor = color)
                     }
                 }
             }
@@ -336,7 +336,7 @@ private fun TrophyVaultHeader(unlocked: Int, total: Int, fraction: Float) {
 // ═══════════════════════════════════════════════
 
 @Composable
-private fun NeonSectionHeader(title: String, emoji: String, accentColor: Color) {
+private fun NeonSectionHeader(title: String, iconType: NavIconType, accentColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,13 +349,22 @@ private fun NeonSectionHeader(title: String, emoji: String, accentColor: Color) 
             color = accentColor.copy(alpha = 0.4f)
         )
         Spacer(Modifier.width(12.dp))
-        Text(
-            text = "$emoji $title",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.5.sp,
-            color = accentColor
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CyberpunkNavIcon(
+                type = iconType,
+                isSelected = true,
+                color = accentColor,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp,
+                color = accentColor
+            )
+        }
         Spacer(Modifier.width(12.dp))
         HorizontalDivider(
             modifier = Modifier.weight(1f),
@@ -379,8 +388,13 @@ private fun NeonMilestoneCard(
     val color = triggerColor(triggerType)
     val isUnlocked = ms.unlocked
     val (cleanName, emoji) = extractEmoji(ms.name)
+    val iconType = when {
+        emoji.contains("🎉") -> NavIconType.PARTY
+        emoji.contains("⭐") -> NavIconType.STAR
+        emoji.contains("🔒") -> NavIconType.LOCK
+        else -> NavIconType.VAULT
+    }
 
-    // Use the shared glow alpha (no per-card infinite transition)
     val glowAlpha = if (isUnlocked) sharedGlowAlpha else 0f
     val contentAlpha = if (isUnlocked) 1f else 0.45f
 
@@ -413,7 +427,7 @@ private fun NeonMilestoneCard(
                 .graphicsLayer(alpha = contentAlpha),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Emoji with radial glow
+            // Neon vector icon with radial glow
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(48.dp)
@@ -428,13 +442,11 @@ private fun NeonMilestoneCard(
                         )
                     }
                 }
-                Text(
-                    text = if (isUnlocked) emoji else "🔒",
-                    fontSize = 26.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = if (!isUnlocked)
-                        Modifier.graphicsLayer(alpha = 0.5f)
-                    else Modifier
+                CyberpunkNavIcon(
+                    type = if (isUnlocked) iconType else NavIconType.LOCK,
+                    isSelected = isUnlocked,
+                    color = if (isUnlocked) color else color.copy(alpha = 0.5f),
+                    modifier = Modifier.size(30.dp)
                 )
             }
 

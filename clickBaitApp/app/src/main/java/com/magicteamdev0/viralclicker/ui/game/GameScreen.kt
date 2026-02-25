@@ -350,7 +350,7 @@ private fun GameTab(
 //  CYBERPUNK NAV BAR — Bottom, icon + label
 // ═══════════════════════════════════════════════
 
-private data class NavTab(val emoji: String, val label: String, val color: Color)
+private data class NavTab(val iconType: NavIconType, val label: String, val color: Color)
 
 @Composable
 private fun CyberpunkNavBar(
@@ -360,11 +360,14 @@ private fun CyberpunkNavBar(
 ) {
     val selectedPage = pagerState.currentPage
     val layoutDirection = LocalLayoutDirection.current
+    val density = LocalDensity.current
+    // Reserve space for the settings icon (40dp button, 32dp Row end-padding used)
+    val settingsPadPx = with(density) { 32.dp.toPx() }
 
     val navTabs = listOf(
-        NavTab("\uD83C\uDFAE", stringResource(R.string.nav_game), NeonCyan),
-        NavTab("\uD83D\uDED2", stringResource(R.string.nav_shop), NeonPurple),
-        NavTab("\uD83C\uDFC6", stringResource(R.string.nav_vault), GoldAccent)
+        NavTab(NavIconType.GAME,  stringResource(R.string.nav_game),  NeonCyan),
+        NavTab(NavIconType.SHOP,  stringResource(R.string.nav_shop),  NeonPurple),
+        NavTab(NavIconType.VAULT, stringResource(R.string.nav_vault), GoldAccent)
     )
 
     val animatedTabOffset by animateFloatAsState(
@@ -390,8 +393,10 @@ private fun CyberpunkNavBar(
                 .fillMaxWidth()
                 .height(2.dp)
         ) {
-            val tabW = size.width / 3f
-            val barW = tabW * 0.42f
+            // Full symmetric width without right-padding deduction
+            val tabAreaW = size.width
+            val tabW = tabAreaW / 3f
+            val barW = tabW * 0.50f
             val rtlOffset = if (layoutDirection == LayoutDirection.Rtl) 2f - animatedTabOffset else animatedTabOffset
             val x = rtlOffset * tabW + (tabW - barW) / 2f
 
@@ -424,21 +429,16 @@ private fun CyberpunkNavBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp, end = 32.dp),
+                    .padding(top = 8.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 navTabs.forEachIndexed { index, tab ->
                     val isSelected = selectedPage == index
 
-                    val emojiScale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.14f else 0.88f,
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (isSelected) 1.18f else 0.88f,
                         animationSpec = spring(dampingRatio = 0.52f, stiffness = 500f),
                         label = "scale_$index"
-                    )
-                    val itemAlpha by animateFloatAsState(
-                        targetValue = if (isSelected) 1f else 0.35f,
-                        animationSpec = tween(200),
-                        label = "alpha_$index"
                     )
 
                     Column(
@@ -448,18 +448,18 @@ private fun CyberpunkNavBar(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) { onPageSelected(index) }
-                            .padding(vertical = 2.dp),
+                            .padding(vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
-                            text = tab.emoji,
-                            fontSize = 20.sp,
-                            modifier = Modifier.graphicsLayer(
-                                scaleX = emojiScale,
-                                scaleY = emojiScale,
-                                alpha = itemAlpha
-                            )
+                        // Cyberpunk canvas icon with neon glow
+                        CyberpunkNavIcon(
+                            type = tab.iconType,
+                            isSelected = isSelected,
+                            color = tab.color,
+                            modifier = Modifier
+                                .size(26.dp)
+                                .graphicsLayer(scaleX = iconScale, scaleY = iconScale)
                         )
                         Text(
                             text = tab.label,
@@ -467,13 +467,13 @@ private fun CyberpunkNavBar(
                             fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
                             letterSpacing = 1.5.sp,
                             color = if (isSelected) tab.color
-                            else OnDarkSecondary.copy(alpha = 0.35f)
+                            else OnDarkSecondary.copy(alpha = 0.32f)
                         )
                     }
                 }
             }
 
-            // Settings icon (end of row)
+            // Settings icon (end of row, overlapping right-most tab gracefully)
             IconButton(
                 onClick = onSettingsClick,
                 modifier = Modifier
@@ -481,11 +481,11 @@ private fun CyberpunkNavBar(
                     .size(40.dp)
                     .padding(end = 4.dp, top = 2.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.settings_title),
-                    tint = OnDarkSecondary.copy(alpha = 0.45f),
-                    modifier = Modifier.size(18.dp)
+                CyberpunkNavIcon(
+                    type = NavIconType.GEAR,
+                    isSelected = true,
+                    color = OnDarkSecondary.copy(alpha = 0.45f),
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

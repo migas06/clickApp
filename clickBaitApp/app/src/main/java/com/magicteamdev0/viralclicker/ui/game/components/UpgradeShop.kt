@@ -119,8 +119,22 @@ fun UpgradeShop(
                     (viralPoints.value.toFloat() / cost.value.toFloat()).coerceIn(0f, 0.99f)
                 } else 0f
 
+                val iconType = when {
+                    def.emoji.contains("👆") -> NavIconType.TAP
+                    def.emoji.contains("👍") -> NavIconType.LIKE
+                    def.emoji.contains("🧤") -> NavIconType.GLOVE
+                    def.emoji.contains("🧠") -> NavIconType.BRAIN
+                    def.emoji.contains("⚛️") -> NavIconType.ATOM
+                    def.emoji.contains("🤖") -> NavIconType.BOT
+                    def.emoji.contains("🌟") -> NavIconType.STAR
+                    def.emoji.contains("📊") -> NavIconType.CHART
+                    def.emoji.contains("🏭") -> NavIconType.FACTORY
+                    def.emoji.contains("🌌") -> NavIconType.ORBIT
+                    else -> NavIconType.SHOP
+                }
+
                 NeonUpgradeRow(
-                    emoji = def.emoji,
+                    iconType = iconType,
                     name = def.name,
                     description = def.description,
                     cost = cost.toDisplayString(),
@@ -143,7 +157,12 @@ fun UpgradeShop(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🔒", fontSize = 36.sp)
+                            CyberpunkNavIcon(
+                                type = NavIconType.LOCK,
+                                isSelected = true,
+                                color = OnDarkSecondary.copy(alpha = 0.5f),
+                                modifier = Modifier.size(36.dp)
+                            )
                             Spacer(Modifier.height(10.dp))
                             Text(
                                 stringResource(R.string.upgrade_keep_earning),
@@ -192,7 +211,12 @@ private fun CyberShopHeader(viralPoints: ViralPoints) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text("💰", fontSize = 12.sp)
+            CyberpunkNavIcon(
+                type = NavIconType.COIN,
+                isSelected = true,
+                color = NeonGreen,
+                modifier = Modifier.size(16.dp)
+            )
             Text(
                 viralPoints.toDisplayString(),
                 color = NeonGreen,
@@ -244,21 +268,21 @@ private fun ResourceBarsSection(
         verticalArrangement = Arrangement.spacedBy(7.dp)
     ) {
         ResourceBar(
-            icon = "💎",
+            iconType = NavIconType.GEM,
             label = "CYBER-CREDITS",
             value = viralPoints.toDisplayString(),
             progress = cyberCreditsProgress,
             color = NeonCyan
         )
         ResourceBar(
-            icon = "⚙️",
+            iconType = NavIconType.GEAR,
             label = "NANOTECH",
             value = "$totalOwnedUpgrades",
             progress = nanotechProgress,
             color = NeonGreen
         )
         ResourceBar(
-            icon = "⚡",
+            iconType = NavIconType.LIGHTNING,
             label = "ENERGY CELL",
             value = allTimePoints.toDisplayString(),
             progress = energyProgress,
@@ -269,7 +293,7 @@ private fun ResourceBarsSection(
 
 @Composable
 private fun ResourceBar(
-    icon: String,
+    iconType: NavIconType,
     label: String,
     value: String,
     progress: Float,
@@ -289,7 +313,12 @@ private fun ResourceBar(
                 .border(1.dp, color.copy(alpha = 0.30f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, fontSize = 11.sp)
+            CyberpunkNavIcon(
+                type = iconType,
+                isSelected = true,
+                color = color,
+                modifier = Modifier.size(14.dp)
+            )
         }
 
         // Label
@@ -420,7 +449,7 @@ private fun CyberCategoryToggle(
 
 @Composable
 private fun NeonUpgradeRow(
-    emoji: String,
+    iconType: NavIconType,
     name: String,
     description: String,
     cost: String,
@@ -490,7 +519,7 @@ private fun NeonUpgradeRow(
                 // Icon box
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(
                             if (canAfford) accentColor.copy(alpha = 0.12f)
@@ -498,12 +527,11 @@ private fun NeonUpgradeRow(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        emoji,
-                        fontSize = 20.sp,
-                        modifier = Modifier.graphicsLayer(
-                            alpha = if (canAfford) 1f else 0.38f
-                        )
+                    CyberpunkNavIcon(
+                        type = iconType,
+                        isSelected = canAfford,
+                        color = if (canAfford) accentColor else OnDarkSecondary.copy(alpha = 0.38f),
+                        modifier = Modifier.size(34.dp)
                     )
                 }
 
@@ -547,10 +575,11 @@ private fun NeonUpgradeRow(
 
                 Spacer(Modifier.width(10.dp))
 
-                // Buy button (right side with arrow)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                // Buy button (fixed width, no arrow)
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .defaultMinSize(minWidth = 75.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(
                             if (canAfford) Brush.verticalGradient(
@@ -563,20 +592,13 @@ private fun NeonUpgradeRow(
                             )
                         )
                         .clickable(enabled = canAfford) { onBuy() }
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(horizontal = 8.dp, vertical = 12.dp)
                 ) {
                     Text(
                         cost,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Black,
                         color = if (canAfford) DarkBackground else OnDarkSecondary.copy(alpha = 0.30f)
-                    )
-                    Text(
-                        ">",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (canAfford) DarkBackground.copy(alpha = 0.65f)
-                        else OnDarkSecondary.copy(alpha = 0.20f)
                     )
                 }
             }
@@ -663,8 +685,12 @@ fun RewardedAdCard(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text("📺", fontSize = 20.sp,
-                modifier = Modifier.graphicsLayer(alpha = if (isReady) 1f else 0.38f))
+            CyberpunkNavIcon(
+                type = NavIconType.TV,
+                isSelected = isReady,
+                color = if (isReady) GoldAccent else OnDarkSecondary.copy(alpha = 0.38f),
+                modifier = Modifier.size(24.dp)
+            )
         }
 
         Column(modifier = Modifier.weight(1f)) {
